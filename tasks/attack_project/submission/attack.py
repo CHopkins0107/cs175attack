@@ -40,7 +40,29 @@ class Attack:
         
         # -------------------- TODO ------------------ #
 
-        # Write your attack function here
+        # Modified by Nathan on 4/21
+        # Iterative Least-Likely Class Method
+        # Initialize some epsilon and alpha
+        e = 5
+        epsilon = min(e+4, int(1.25*e))
+        alpha = 0.01
+        # e = 5 and alpha = 0.01 worked best for me, yielding:
+        # attacker_success_rate: 100, dist: 6.228, score: 91.5358
+
+        # Desired label is the label we want to output (Label 1)
+        desired_labels = torch.tensor([torch.tensor(1)]).to(self.device)
+
+        # Iterate
+        for i in range(epsilon):
+            # Calculate the gradient with respect to the desired label
+            gradient = self.vm.get_batch_input_gradient(perturbed_image, desired_labels)
+            # Modify the perturbed image by the sign of the gradient
+            perturbed_image = perturbed_image - (alpha*gradient.sign())
+            # Clamp the image so it is in the range of the minimum and maximum value
+            perturbed_image = torch.clamp(perturbed_image, self.min_val, self.max_val)
+            # Use the X_{n} image to calculate the X_{n+1} image
+            perturbed_image = perturbed_image.detach().clone()
+
 
         # ------------------ END TODO ---------------- #
 
